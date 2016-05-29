@@ -3,46 +3,64 @@ me.sourceDir() + "snare.wav" => string filename;
 if( me.args() ) me.arg(0) => filename;
 
 // Beats per minute
-120 => int BPM;
+60 => int BPM;
 60000::ms / BPM => dur beat;
 
 // Beats per measure
 4 => int beatsPerMeasure;
 
+16 => int numMeasures;
+
 // Resolution (smallest time between drum hits)
-2 => int RESDIVISOR;
+4 => int RESDIVISOR;
 beat / RESDIVISOR => dur resolution;
 
-spork ~ kick();
-resolution => now;
-spork ~ hat();
-resolution => now;
-spork ~ snare();
-
-
-while (true)
-    1::second => now;
-
-fun void kick() {
-    while (true) {
-        spork ~ playSample("kick.wav");
-        2 * resolution => now;
-    }
+public class Instrument {
+    string m_samplePath;
+    float m_probability;
 }
 
-fun void hat() {
-    while (true) {
-        spork ~ playSample("hat.wav");
+(beat * beatsPerMeasure * numMeasures)  => dur totalTime;
+
+Instrument kick;
+"kick.wav" => kick.m_samplePath;
+0.214 => kick.m_probability;
+spork ~ playInstrument(kick, totalTime);
+
+Instrument snare;
+"snare.wav" => snare.m_samplePath;
+0.107 => snare.m_probability;
+spork ~ playInstrument(snare, totalTime);
+
+Instrument hat;
+"hat.wav" => hat.m_samplePath;
+0.429 => hat.m_probability;
+spork ~ playInstrument(hat, totalTime);
+
+totalTime => now;
+
+fun void playInstrument (Instrument inst, dur playTime) {
+    now => time start;
+    while (now < (start + playTime)) {
+        Math.randomf() => float roll;
+
+        if (roll <= inst.m_probability)
+            spork ~ playSample(inst.m_samplePath);
+
         resolution => now;
     }
 }
 
-fun void snare() {
-    while(true) {
-        spork ~ playSample("snare.wav");
-        4 * resolution => now;
+fun float[] rollHits(int numHits) {
+    float hits[numHits];
+
+    for (0 => int i; i < numHits; i++) {
+        Math.randomf() => hits[i];
     }
+
+    return hits;
 }
+
 
 fun void playSample (string path) {
     SndBuf buf => dac;
