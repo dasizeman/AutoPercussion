@@ -14,7 +14,7 @@
 beat / RESDIVISOR => dur resolution;
 
 // Sparsity (chance of nothing hitting)
-.25 => float sparsity;
+0 => float sparsity;
 
 
 
@@ -22,7 +22,7 @@ public class Instrument {
     string m_name;
     string m_samplePath;
     float m_probability;
-    int m_weight;
+    float m_weight;
 }
 
 (RESDIVISOR * beatsPerMeasure * numMeasures)  => int totalHits;
@@ -36,20 +36,22 @@ rollHits(hits);
 Instrument kick;
 "KICK" => kick.m_name;
 "kick.wav" => kick.m_samplePath;
-0.214 => kick.m_probability;
+2 => kick.m_weight;
 kick @=> instruments[0];
 
 Instrument snare;
 "SNARE" => snare.m_name;
 "snare.wav" => snare.m_samplePath;
-0.107 => snare.m_probability;
+1 => snare.m_weight;
 snare @=> instruments[1];
 
 Instrument hat;
 "HAT" => hat.m_name;
 "hat.wav" => hat.m_samplePath;
-0.429 => hat.m_probability;
+4 => hat.m_weight;
 hat @=> instruments[2];
+
+computeProbabilities(instruments);
 
 while (true) {
 
@@ -87,7 +89,7 @@ fun void rollHits(float hits[]) {
 }
 
 fun void computeProbabilities(Instrument instruments[]) {
-    0 => int divisor;
+    0 => float divisor;
 
     for (0 => int i; i < instruments.cap(); i++) {
         divisor + instruments[i].m_weight => divisor;
@@ -96,6 +98,7 @@ fun void computeProbabilities(Instrument instruments[]) {
     for (0 => int i; i < instruments.cap(); i++) {
         (1 - sparsity) * (instruments[i].m_weight / divisor) =>
             instruments[i].m_probability;
+
     }
 
 }
